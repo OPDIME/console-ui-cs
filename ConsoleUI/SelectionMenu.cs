@@ -10,7 +10,7 @@ namespace OPDIME.ConsoleUI
       System.Console.SetCursorPosition(x, y);
     }
 
-    public string[] MenuItems { get; set; }
+    public string[] MenuItems { get; }
     public int Columns { get; }
     public int Rows { get; }
     public int CursorPosition { get; private set; }
@@ -37,27 +37,38 @@ namespace OPDIME.ConsoleUI
 
     private void DrawTable(int x, int y)
     {
-      var fullRow = "-".Multiply(this.CellLength);
-      var partialRow = " ".Multiply(this.CellLength);
-      fullRow += "----";
-      fullRow = fullRow.Multiply(this.Columns);
-      partialRow += "   |";
-      partialRow = partialRow.Multiply(this.Columns);
-      partialRow = "|" + partialRow.Substring(1, partialRow.Length - 1);
-      partialRow += "\r\n";
-      var table = $"{fullRow}\r\n{partialRow}";
+      // prepare text row to divide content
+      var dividerRow = "-".Multiply(this.CellLength);
+      // prepare empty content rows
+      var contentRow = " ".Multiply(this.CellLength);
+      // add 4 left over dashes due to the space
+      // between the cell content and the cell border
+      dividerRow += "----";
+      // multiply the divider row length by the column count
+      // to divide the whole row, rather than one cell
+      dividerRow = dividerRow.Multiply(this.Columns);
+
+      // add 3 spaces and a vertical divider for the content row divider
+      contentRow += "   |";
+      // multiply by column count, so it fits for the whole row
+      contentRow = contentRow.Multiply(this.Columns);
+      contentRow = $"|{contentRow.Substring(1)}\r\n";
+      var table = $"{dividerRow}\r\n{contentRow}";
       table = table.Multiply(this.Rows);
-      table += fullRow;
+      table += $"\\{dividerRow.Substring(1, dividerRow.Length - 2)}/";
       this.SetCursorPosition(x, y);
       Console.Write(table);
     }
 
     private void DrawItems(int offsetX, int offsetY)
     {
+      // store the old cursor position on the console
       var cursorX = System.Console.CursorLeft;
       var cursorY = System.Console.CursorTop;
+      // draw all items
       for (int i = 0; i < this.MenuItems.Length; i++)
       {
+        // calculate
         var x = offsetX - 1 + (i % this.Columns) * (this.CellLength + 2) + (i % this.Columns + 1) * 2;
         var y = offsetY + 1 + (i / this.Columns) * 2;
         if (i % this.Columns == 0)
