@@ -7,7 +7,7 @@ namespace OPDIME.ConsoleUI
   {
     private void SetCursorPosition(int x, int y)
     {
-      System.Console.SetCursorPosition(x, y);
+      Console.SetCursorPosition(x, y);
     }
 
     public string[] MenuItems { get; }
@@ -26,205 +26,212 @@ namespace OPDIME.ConsoleUI
       ConsoleColor currentItemColor = ConsoleColor.DarkGray
     )
     {
-      this.Title = title;
-      this.MenuItems = menuItems;
-      this.Columns = columns;
-      this.Rows = this.MenuItems.Length / columns +
-                  (this.MenuItems.Length % columns == 0 ? 0 : 1);
-      this.CellLength = cellLength;
-      this.CurrentItemColor = currentItemColor;
+      Title = title;
+      MenuItems = menuItems;
+      Columns = columns;
+      Rows = MenuItems.Length / columns +
+                  (MenuItems.Length % columns == 0 ? 0 : 1);
+      CellLength = cellLength;
+      CurrentItemColor = currentItemColor;
     }
 
     private void DrawTable(int x, int y)
     {
       // prepare text row to divide content
-      var dividerRow = "-".Multiply(this.CellLength);
+      var dividerRow = "-".Multiply(CellLength);
       // prepare empty content rows
-      var contentRow = " ".Multiply(this.CellLength);
+      var contentRow = " ".Multiply(CellLength);
       // add 4 left over dashes due to the space
       // between the cell content and the cell border
       dividerRow += "----";
       // multiply the divider row length by the column count
       // to divide the whole row, rather than one cell
-      dividerRow = dividerRow.Multiply(this.Columns);
+      dividerRow = dividerRow.Multiply(Columns);
 
       // add 3 spaces and a vertical divider for the content row divider
       contentRow += "   |";
       // multiply by column count, so it fits for the whole row
-      contentRow = contentRow.Multiply(this.Columns);
+      contentRow = contentRow.Multiply(Columns);
       contentRow = $"|{contentRow.Substring(1)}\r\n";
       var table = $"{dividerRow}\r\n{contentRow}";
-      table = table.Multiply(this.Rows);
+      table = table.Multiply(Rows);
       table += $"\\{dividerRow.Substring(1, dividerRow.Length - 2)}/";
-      this.SetCursorPosition(x, y);
+      table = $"/{dividerRow.Substring(2)}\\{table.Substring(dividerRow.Length)}";
+      SetCursorPosition(x, y);
       Console.Write(table);
     }
 
     private void DrawItems(int offsetX, int offsetY)
     {
       // store the old cursor position on the console
-      var cursorX = System.Console.CursorLeft;
-      var cursorY = System.Console.CursorTop;
+      var cursorX = Console.CursorLeft;
+      var cursorY = Console.CursorTop;
       // draw all items
-      for (int i = 0; i < this.MenuItems.Length; i++)
+      for (int i = 0; i < MenuItems.Length; i++)
       {
         // calculate
-        var x = offsetX - 1 + (i % this.Columns) * (this.CellLength + 2) + (i % this.Columns + 1) * 2;
-        var y = offsetY + 1 + (i / this.Columns) * 2;
-        if (i % this.Columns == 0)
+        var x = offsetX - 1 + (i % Columns) * (CellLength + 2) + (i % Columns + 1) * 2;
+        var y = offsetY + 1 + (i / Columns) * 2;
+        if (i % Columns == 0)
         {
           x++;
         }
 
-        this.SetCursorPosition(x, y);
-        var menuItemcontent = this.MenuItems[i];
-        if (menuItemcontent.Length > this.CellLength)
+        SetCursorPosition(x, y);
+        var menuItemcontent = MenuItems[i];
+        if (menuItemcontent.Length > CellLength)
         {
-          menuItemcontent = menuItemcontent.Substring(0, this.CellLength);
+          menuItemcontent = menuItemcontent.Substring(0, CellLength);
         }
 
         Console.Write(menuItemcontent);
       }
 
-      this.SetCursorPosition(cursorX, cursorY);
+      SetCursorPosition(cursorX, cursorY);
     }
 
     private void DrawCursorItem(int offsetX, int offsetY)
     {
-      var curX = System.Console.CursorLeft;
-      var curY = System.Console.CursorTop;
-      var x = offsetX + 2 + this.CellLength * (this.CursorPosition % this.Columns) +
-              (this.CursorPosition % this.Columns) * 4;
-      var y = offsetY + 1 + 2 * (this.CursorPosition / this.Columns);
-      if (this.CursorPosition % this.Columns > 0)
+      var curX = Console.CursorLeft;
+      var curY = Console.CursorTop;
+      var x = offsetX + 2 + CellLength * (CursorPosition % Columns) +
+              (CursorPosition % Columns) * 4;
+      var y = offsetY + 1 + 2 * (CursorPosition / Columns);
+      if (CursorPosition % Columns > 0)
       {
         x--;
       }
 
-      var content = this.MenuItems[CursorPosition];
+      var content = MenuItems[CursorPosition];
       if (content.Length > 8)
       {
-        content = content.Substring(0, this.CellLength - 2);
+        content = content.Substring(0, CellLength - 2);
       }
 
-      this.SetCursorPosition(x, y);
-      var oldForegroundColor = System.Console.ForegroundColor;
-      System.Console.ForegroundColor = this.CurrentItemColor;
+      SetCursorPosition(x, y);
+      var oldForegroundColor = Console.ForegroundColor;
+      Console.ForegroundColor = CurrentItemColor;
       Console.Write("> " + content);
-      System.Console.ForegroundColor = oldForegroundColor;
-      this.SetCursorPosition(curX, curY);
+      Console.ForegroundColor = oldForegroundColor;
+      SetCursorPosition(curX, curY);
     }
 
-    public void DrawMenu(int offsetY = 0, int offsetX = 0)
+    private void DrawMenu(int offsetX = 0, int offsetY = 0)
     {
-      var curX = System.Console.CursorLeft;
-      var curY = System.Console.CursorTop;
-      this.SetCursorPosition(offsetX + curX, offsetY + curY);
-      Console.WriteLine($"<{this.Title}>");
-      this.DrawTable(offsetX + curX, offsetY + curY + 1);
-      this.DrawItems(offsetX + curX, offsetY + curY + 1);
-      this.DrawCursorItem(offsetX + curX, offsetY + curY + 1);
-      this.SetCursorPosition(curX, curY);
+      var curX = Console.CursorLeft;
+      var curY = Console.CursorTop;
+      SetCursorPosition(offsetX + curX, offsetY + curY);
+      Console.WriteLine($"<{Title}>");
+      DrawTable(offsetX + curX, offsetY + curY + 1);
+      DrawItems(offsetX + curX, offsetY + curY + 1);
+      DrawCursorItem(offsetX + curX, offsetY + curY + 1);
+      SetCursorPosition(curX, curY);
     }
 
-    public void MoveCursor(ECursorDirection dir)
+    private void MoveCursor(ECursorDirection dir)
     {
       switch (dir)
       {
         case ECursorDirection.Up:
-          if (this.CursorPosition >= this.Columns)
+          if (CursorPosition >= Columns)
           {
-            this.CursorPosition -= this.Columns;
+            CursorPosition -= Columns;
           }
 
           break;
 
         case ECursorDirection.Down:
-          if (this.CursorPosition / this.Columns < this.Rows - 1
-              && this.CursorPosition + this.Columns < this.MenuItems.Length)
+          if (CursorPosition / Columns < Rows - 1
+              && CursorPosition + Columns < MenuItems.Length)
           {
-            this.CursorPosition += this.Columns;
+            CursorPosition += Columns;
           }
 
           break;
 
         case ECursorDirection.Right:
-          if (this.CursorPosition % this.Columns < this.Columns - 1
-              && this.CursorPosition < this.MenuItems.Length - 1)
+          if (CursorPosition % Columns < Columns - 1
+              && CursorPosition < MenuItems.Length - 1)
           {
-            this.CursorPosition++;
+            CursorPosition++;
           }
 
           break;
 
         case ECursorDirection.Left:
-          if (this.CursorPosition % this.Columns > 0)
+          if (CursorPosition % Columns > 0)
           {
-            this.CursorPosition--;
+            CursorPosition--;
           }
 
           break;
       }
     }
 
-    public void MoveCursor(ConsoleKey key)
+    private void MoveCursor(ConsoleKey key)
     {
       switch (key)
       {
         case ConsoleKey.UpArrow:
-          this.MoveCursor(ECursorDirection.Up);
+          MoveCursor(ECursorDirection.Up);
           break;
         case ConsoleKey.DownArrow:
-          this.MoveCursor(ECursorDirection.Down);
+          MoveCursor(ECursorDirection.Down);
           break;
         case ConsoleKey.LeftArrow:
-          this.MoveCursor(ECursorDirection.Left);
+          MoveCursor(ECursorDirection.Left);
           break;
         case ConsoleKey.RightArrow:
-          this.MoveCursor(ECursorDirection.Right);
+          MoveCursor(ECursorDirection.Right);
           break;
       }
     }
 
-    public void Clear(int offsetY, int offsetX)
+    private void Clear(int offsetX, int offsetY)
     {
       var cursorX = Console.CursorLeft;
       var cursorY = Console.CursorTop;
-      var clearString = " ".Multiply(System.Console.WindowWidth - offsetX);
-      int rowsToClear = (this.Rows - 1) * 4 + 5;
+      var clearString = " ".Multiply(Console.WindowWidth - offsetX);
+      int rowsToClear = (Rows - 1) * 4 + 5;
       for (int i = 0; i < rowsToClear; i++)
       {
-        this.SetCursorPosition(cursorX + offsetX, cursorY + offsetY + i);
+        SetCursorPosition(cursorX + offsetX, cursorY + offsetY + i);
         Console.Write(clearString);
       }
-      this.SetCursorPosition(cursorX, cursorY);
+      SetCursorPosition(cursorX, cursorY);
     }
 
     /**
      * Draws the configured menu and returns the index of the selected item,
      * or null if the menu has been canceled.
      */
-    public int? GetMenuResult(int offsetY = 0, int offsetX = 0)
+    public int? GetMenuResult(int offsetX = 0, int offsetY = 0)
     {
       // var cursorVisiblility = System.Console.CursorVisible;
       // System.Console.CursorVisible = false;
       do
       {
-        this.DrawMenu(offsetY, offsetX);
-        var key = System.Console.ReadKey().Key;
+        DrawMenu(offsetX, offsetY);
+        var key = Console.ReadKey().Key;
+        // reset the cursor position to its original place
+        int left = Console.CursorLeft;
+        if (left > 0) {
+          --left;
+        }
+        SetCursorPosition(left, Console.CursorTop);
         switch (key)
         {
           case ConsoleKey.C:
             // System.Console.CursorVisible = cursorVisiblility;
-            this.Clear(offsetX, offsetY);
+            Clear(offsetX, offsetY);
             return null;
           case ConsoleKey.Enter:
             // System.Console.CursorVisible = cursorVisiblility;
-            this.Clear(offsetX, offsetY);
-            return this.CursorPosition;
+            Clear(offsetX, offsetY);
+            return CursorPosition;
         }
 
-        this.MoveCursor(key);
+        MoveCursor(key);
       } while (true);
     }
   }
